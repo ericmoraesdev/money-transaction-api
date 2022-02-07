@@ -1,0 +1,55 @@
+version: "3.1"
+services:
+
+    php.mt.dev:
+      build: .
+      container_name: php.mt.dev
+      restart: unless-stopped
+      tty: true
+      working_dir: /money-transaction-api
+      user: "1000:1000"
+      volumes:
+        - ./src:/money-transaction-api
+      networks:
+        - api
+
+    nginx.mt.dev:
+      image: nginx:alpine
+      container_name: nginx.mt.dev
+      restart: unless-stopped
+      tty: true
+      working_dir: /money-transaction-api
+      volumes:
+        - ./src:/money-transaction-api
+        - ./.docker/config/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      ports:
+        - "8080:80"
+      links:
+        - mariadb.mt.dev
+      networks:
+        - api
+        
+    mariadb.mt.dev:
+      image: mariadb:10.4
+      container_name: mariadb.mt.dev
+      restart: unless-stopped
+      tty: true
+      volumes:
+        - .docker/database/mariadb:/var/lib/mysql/
+      environment:
+        - MYSQL_ROOT_PASSWORD=root-pass
+        - MYSQL_DATABASE=${DB_DATABASE}
+        - MYSQL_USER=${DB_USERNAME}
+        - MYSQL_PASSWORD=${DB_PASSWORD}
+      ports:
+        - "3306:3306"
+      networks:
+        - api
+
+networks:
+  api:
+    driver: bridge
+
+volumes:
+  database:
+    driver: local
