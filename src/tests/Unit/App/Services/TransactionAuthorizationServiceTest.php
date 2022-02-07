@@ -59,7 +59,7 @@ class TransactionAuthorizationServiceTest extends TestCase
     }
 
     /**
-     * test should authorize transaction when external service returns ok
+     * test should forbid transaction when external service returns unauthorized
      * @covers TransactionAuthorization::authorize()
      */
     public function testShouldForbidTransactionWhenExternalServiceReturnsUnauthorized(): void
