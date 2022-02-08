@@ -14,13 +14,9 @@ use App\Http\Controllers\TransactionController;
 use App\Interfaces\Transaction\TransactionEntityInterface;
 use App\Interfaces\Transaction\TransactionRequestInterface;
 use App\Interfaces\Transaction\TransactionServiceInterface;
-use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class TransactionControllerTest extends TestCase
 {
-
-    use DatabaseTransactions;
-
     /**
      * test should return json response with data and message when transaction is successful
      * @covers TransactionController::transaction()

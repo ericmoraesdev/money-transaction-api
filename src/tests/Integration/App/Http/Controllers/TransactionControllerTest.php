@@ -199,6 +199,7 @@ class TransactionControllerTest extends TestCase
             'payee_id' => $payee->id,
             'amount' => 100
         ])->seeStatusCode(Response::HTTP_CREATED);
+
     }
 
 

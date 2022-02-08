@@ -10,8 +10,15 @@ use App\Interfaces\Transaction\TransactionRepositoryInterface;
 
 class TransactionRepository extends AbstractTransactionRepository implements TransactionRepositoryInterface
 {
-    public function __construct(TransactionModelInterface $transaction)
+    protected $transactionEntity;
+    protected $transaction;
+
+    public function __construct(
+        TransactionEntityInterface $transactionEntity,
+        TransactionModelInterface $transaction
+    )
     {
+        $this->transactionEntity = $transactionEntity;
         $this->transaction = $transaction;
     }
 
@@ -24,7 +31,9 @@ class TransactionRepository extends AbstractTransactionRepository implements Tra
     {
         $transaction = $this->getModelById($id);
 
-        return new Transaction([
+        $transactionEntity = $this->transactionEntity->getNewInstance();
+
+        return $transactionEntity->populate([
             'id' => $transaction->id,
             'payer' => $transaction->payer,
             'payee' => $transaction->payee,

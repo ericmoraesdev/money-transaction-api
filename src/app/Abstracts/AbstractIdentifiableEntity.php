@@ -4,7 +4,7 @@ namespace App\Abstracts;
 
 use App\Interfaces\IdentifiableEntityInterface;
 
-abstract class AbstractIdentifiableEntity implements IdentifiableEntityInterface
+abstract class AbstractIdentifiableEntity extends AbstractEntity implements IdentifiableEntityInterface
 {
     protected $id;
 

@@ -83,13 +83,23 @@ abstract class AbstractTransactionEntity extends AbstractIdentifiableEntity impl
         return $this->status;
     }
 
+    public function transfer(): self
+    {
+        $this->validate();
+
+        $this->payer->decreaseAvailableMoney($this->amount);
+        $this->payee->increaseAvailableMoney($this->amount);
+
+        $this->setDoneStatus();
+
+        return $this;
+    }
+
     public function validate(): self
     {
         $this->validatePayee();
         $this->validateAmount();
         $this->validatePayer();
-
-
 
         return $this;
     }
@@ -129,28 +139,16 @@ abstract class AbstractTransactionEntity extends AbstractIdentifiableEntity impl
         return $this;
     }
 
-    public function transfer(): self
+    public function chargeback(): self
     {
-        $this->validate();
+        if (!$this->isDone()) {
+            throw new TransactionEntityException('Não foi possível estornar o valor pois a transação não foi realizada');
+        }
 
-        $this->payer->decreaseAvailableMoney($this->amount);
-        $this->payee->increaseAvailableMoney($this->amount);
+        $this->payer->increaseAvailableMoney($this->amount);
+        $this->payee->decreaseAvailableMoney($this->amount);
 
-        $this->setDoneStatus();
 
         return $this;
     }
-
-    // public function chargeback(): self
-    // {
-    //     if (!$this->isDone()) {
-    //         throw new TransactionEntityException('Não foi possível estornar o valor pois a transação não foi realizada');
-    //     }
-
-    //     $this->payer->increaseAvailableMoney($this->amount);
-    //     $this->payee->decreaseAvailableMoney($this->amount);
-
-
-    //     return $this;
-    // }
 }

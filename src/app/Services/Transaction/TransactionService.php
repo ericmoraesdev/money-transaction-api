@@ -45,6 +45,8 @@ class TransactionService implements TransactionServiceInterface
         $transaction = DB::transaction(function() use ($payerId, $payeeId, $amount) {
             $this->validate($payerId, $payeeId, $amount);
 
+            // TODO: Check if user did the same transaction on interval
+
             $transaction = $this->createPendingTransaction($payerId, $payeeId, $amount);
             $this->transactionTransferService->transfer($transaction);
             return $transaction;

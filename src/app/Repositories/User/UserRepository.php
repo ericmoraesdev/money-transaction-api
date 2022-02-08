@@ -2,7 +2,6 @@
 
 namespace App\Repositories\User;
 
-use App\Entities\User\User;
 use Illuminate\Http\Response;
 use App\Exceptions\RepositoryException;
 use App\Interfaces\User\UserModelInterface;
@@ -12,35 +11,42 @@ use App\Interfaces\User\UserRepositoryInterface;
 
 class UserRepository extends AbstractUserRepository implements UserRepositoryInterface
 {
+    protected $user;
+    protected $userEntity;
 
-    public function __construct(UserModelInterface $user)
-    {
+    public function __construct(
+        UserModelInterface $user,
+        UserEntityInterface $userEntity
+    ) {
         $this->user = $user;
+        $this->userEntity = $userEntity;
     }
 
     public function getById(int $id, bool $hidePassword = true): ?UserEntityInterface
     {
-        $user = $this->user->find($id);
+        $user = $this->user->findById($id);
 
         if (!$user) {
             return null;
         }
 
-        $entity = new User([
+        $userEntity = $this->userEntity->getNewInstance();
+
+        $userEntity->populate([
             'id' => $user->id,
             'type' => $user->type,
             'fullname' => $user->fullname,
             'cpf' => $user->cpf,
             'cnpj' => $user->cnpj,
             'email' => $user->email,
-            'available_money' => $user->available_money
+            'available_money' => floatval($user->available_money)
         ]);
 
         if (!$hidePassword) {
-            $entity->setPassword($user->password);
+            $userEntity->setPassword($user->password);
         }
 
-        return $entity;
+        return $userEntity;
     }
 
     public function save(UserEntityInterface $user): UserEntityInterface
@@ -49,7 +55,7 @@ class UserRepository extends AbstractUserRepository implements UserRepositoryInt
 
         if ($user->getId() > 0) {
 
-            $userModel = $this->user->find($user->getId());
+            $userModel = $this->user->findById($user->getId());
 
             if (!$userModel) {
                 throw new RepositoryException(

@@ -21,7 +21,7 @@ class User extends AbstractPersistingEntity implements UserEntityInterface
 
     public function __construct(array $data = [])
     {
-        if (isset($data) && !empty($data)) {
+        if (!empty($data)) {
             $this->populate($data);
         }
     }
@@ -54,7 +54,7 @@ class User extends AbstractPersistingEntity implements UserEntityInterface
         }
 
         if (isset($data['available_money'])) {
-            $this->setAvailableMoney(floatval($data['available_money']) ?? 0);
+            $this->setAvailableMoney($data['available_money'] ?? 0);
         }
 
         return $this;

@@ -52,6 +52,7 @@ class TransactionAuthorizationService implements TransactionAuthorizationService
         }
 
         if ($authResponse->getStatusCode() !== Response::HTTP_OK &&
+            $authResponse->getStatusCode() !== Response::HTTP_CREATED &&
             $authResponse->getStatusCode() !== Response::HTTP_UNAUTHORIZED
         ) {
             throw new TransactionAuthorizationServiceException(
@@ -60,7 +61,9 @@ class TransactionAuthorizationService implements TransactionAuthorizationService
             );
         }
 
-        if ($authResponse->getStatusCode() === Response::HTTP_OK) {
+        if ($authResponse->getStatusCode() === Response::HTTP_OK ||
+            $authResponse->getStatusCode() === Response::HTTP_CREATED
+        ) {
             $this->authorizeTransaction($transaction);
 
             return $transaction;
@@ -82,7 +85,8 @@ class TransactionAuthorizationService implements TransactionAuthorizationService
     protected function authorizeTransaction(TransactionEntityInterface $transaction)
     {
         $transaction->setAuthorizedStatus();
-        $this->transactionRepository->save($transaction);
+
+        // TODO: Log the transaction status
     }
 
     /**
@@ -94,6 +98,7 @@ class TransactionAuthorizationService implements TransactionAuthorizationService
     protected function forbidTransaction(TransactionEntityInterface $transaction)
     {
         $transaction->setUnauthorizedStatus();
-        $this->transactionRepository->save($transaction);
+
+        // TODO: Log the transaction status
     }
 }

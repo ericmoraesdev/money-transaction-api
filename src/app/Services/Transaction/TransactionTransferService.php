@@ -38,7 +38,7 @@ class TransactionTransferService implements TransactionTransferServiceInterface
 
         $transaction = $this->getAuthorizedTransaction($transaction);
 
-        if ($transaction->isUnauthorized()) {
+        if (!$transaction->isAuthorized()) {
             throw new TransactionTransferServiceException(
                 'Transação não autorizada',
                 Response::HTTP_UNAUTHORIZED
