@@ -66,4 +66,13 @@ class TransactionRepository extends AbstractTransactionRepository implements Tra
 
         return $transaction;
     }
+
+    public function hasPendingTransaction(int $payerId): bool
+    {
+        $transaction = $this->transaction->where('payer_id', '=', $payerId)
+            ->where('status', '=', Transaction::STATUS_PENDING)
+            ->count();
+
+        return $transaction > 0;
+    }
 }

@@ -12,4 +12,6 @@ interface TransactionRepositoryInterface
     public function update(TransactionEntityInterface $entity): TransactionEntityInterface;
     public function delete(TransactionEntityInterface $entity): TransactionEntityInterface;
     public function deleteById(int $id): void;
+
+    public function hasPendingTransaction(int $payerId): bool;
 }

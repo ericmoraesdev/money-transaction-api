@@ -40,7 +40,7 @@ class TransactionTransferService implements TransactionTransferServiceInterface
 
         if (!$transaction->isAuthorized()) {
             throw new TransactionTransferServiceException(
-                'Transação não autorizada',
+                'Transação não autorizada.',
                 Response::HTTP_UNAUTHORIZED
             );
         }
@@ -49,19 +49,6 @@ class TransactionTransferService implements TransactionTransferServiceInterface
 
         return $transaction;
 
-    }
-
-    /**
-     * Saves the transaction in the database
-     *
-     * @param TransactionEntityInterface $transaction
-     * @return TransactionEntityInterface
-     */
-    protected function saveTransaction(TransactionEntityInterface $transaction): self
-    {
-        $this->transactionRepository->save($transaction);
-
-        return $this;
     }
 
     /**

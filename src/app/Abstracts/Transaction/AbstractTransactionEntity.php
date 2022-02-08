@@ -138,17 +138,4 @@ abstract class AbstractTransactionEntity extends AbstractIdentifiableEntity impl
 
         return $this;
     }
-
-    public function chargeback(): self
-    {
-        if (!$this->isDone()) {
-            throw new TransactionEntityException('Não foi possível estornar o valor pois a transação não foi realizada');
-        }
-
-        $this->payer->increaseAvailableMoney($this->amount);
-        $this->payee->decreaseAvailableMoney($this->amount);
-
-
-        return $this;
-    }
 }

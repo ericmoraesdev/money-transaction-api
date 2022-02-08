@@ -45,8 +45,6 @@ class TransactionService implements TransactionServiceInterface
         $transaction = DB::transaction(function() use ($payerId, $payeeId, $amount) {
             $this->validate($payerId, $payeeId, $amount);
 
-            // TODO: Check if user did the same transaction on interval
-
             $transaction = $this->createPendingTransaction($payerId, $payeeId, $amount);
             $this->transactionTransferService->transfer($transaction);
             return $transaction;
@@ -70,6 +68,8 @@ class TransactionService implements TransactionServiceInterface
         $this->validatePayer($payerId);
         $this->validatePayee($payeeId);
         $this->validateAmount($amount);
+
+        $this->checkPreviousTransaction($payerId);
 
         return $this;
     }
@@ -103,6 +103,20 @@ class TransactionService implements TransactionServiceInterface
         if ($amount <= 0) {
             throw new TransactionServiceException(
                 'Favor informar um valor maior que zero para realizar a transaçao.',
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return $this;
+    }
+
+    protected function checkPreviousTransaction(int $payerId): self
+    {
+        $hasPendingTransaction = $this->transactionRepository->hasPendingTransaction($payerId);
+
+        if ($hasPendingTransaction) {
+            throw new TransactionServiceException(
+                'Já existe uma transação pendente para este usuário. Favor tentar novamente dentro de alguns minutos.',
                 Response::HTTP_BAD_REQUEST
             );
         }

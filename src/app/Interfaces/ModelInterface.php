@@ -27,4 +27,23 @@ interface ModelInterface
      * @throws \Exception
      */
     public function delete();
+
+    /**
+     * Apply condition to the query.
+     *
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  mixed   $value
+     *
+     * @return Builder
+     */
+    public function where(string $column, string $operator, $value);
+
+    /**
+     * Gets the number of records in the database.
+     *
+     * @return integer
+     */
+    public function count(): int;
+
 }

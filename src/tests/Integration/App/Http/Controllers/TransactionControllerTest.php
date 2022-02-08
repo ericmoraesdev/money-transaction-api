@@ -1,6 +1,10 @@
 <?php
 namespace Tests\Integration\App\Http\Controllers;
 
+use App\Exceptions\Transaction\TransactionAuthorizationServiceException;
+use App\Interfaces\Http\HttpRequestServiceInterface;
+use App\Interfaces\Http\HttpResponseEntityInterface;
+use App\Interfaces\Transaction\TransactionAuthorizationServiceInterface;
 use TestCase;
 use App\Models\User\User;
 use Illuminate\Http\Response;
@@ -181,19 +185,121 @@ class TransactionControllerTest extends TestCase
     }
 
     /**
-     * testing correct transaction
-     *
-     * @return void
+     * testing authorization service unavailable
      */
-    public function testShouldTransact()
+    public function testShouldNotTransactWhenAuthorizationServiceUnavailable()
     {
-
+        ## ARRANGE
         $payer = User::factory()->create([
             'available_money' => 100
         ]);
 
         $payee = User::factory()->create();
 
+        $authMock = $this->createMock(TransactionAuthorizationServiceInterface::class);
+        $authMock->method('authorize')->willThrowException(
+            new TransactionAuthorizationServiceException(
+                'O serviço de autorização de transação está indisponível no momento.',
+                Response::HTTP_SERVICE_UNAVAILABLE
+            )
+        );
+
+        $this->app->instance(TransactionAuthorizationServiceInterface::class, $authMock);
+
+        ## ACT & ASSERT
+        $this->json('POST', '/transaction', [
+            'payer_id' => $payer->id,
+            'payee_id' => $payee->id,
+            'amount' => 100
+        ])->seeJson([
+            'message' => 'O serviço de autorização de transação está indisponível no momento.'
+        ]);
+    }
+
+    /**
+     * testing authorization service unable to process the request
+     */
+    public function testShouldNotTransactWhenAuthorizationServiceIsUnableToProcessTheRequest()
+    {
+        ## ARRANGE
+        $payer = User::factory()->create([
+            'available_money' => 100
+        ]);
+
+        $payee = User::factory()->create();
+
+        $httpResponseMock = $this->createMock(HttpResponseEntityInterface::class);
+        $httpResponseMock->method('getStatusCode')->willReturn(Response::HTTP_BAD_REQUEST);
+
+        $httpRequestMock = $this->createMock(HttpRequestServiceInterface::class);
+        $httpRequestMock->method('get')->willReturn($httpResponseMock);
+
+        $this->app->instance(HttpRequestServiceInterface::class, $httpRequestMock);
+
+
+        ## ACT & ASSERT
+        $this->json('POST', '/transaction', [
+            'payer_id' => $payer->id,
+            'payee_id' => $payee->id,
+            'amount' => 100
+        ])->seeJson([
+            'message' => 'Não foi possível autorizar a transação. Verifique os dados e tente novamente.'
+        ]);
+    }
+
+    /**
+     * testing authorization service forbidding
+     */
+    public function testShouldNotTransactWhenAuthorizationServiceForbids()
+    {
+        ## ARRANGE
+        $payer = User::factory()->create([
+            'available_money' => 100
+        ]);
+
+        $payee = User::factory()->create();
+
+        $httpResponseMock = $this->createMock(HttpResponseEntityInterface::class);
+        $httpResponseMock->method('getStatusCode')->willReturn(Response::HTTP_UNAUTHORIZED);
+
+        $httpRequestMock = $this->createMock(HttpRequestServiceInterface::class);
+        $httpRequestMock->method('get')->willReturn($httpResponseMock);
+
+        $this->app->instance(HttpRequestServiceInterface::class, $httpRequestMock);
+
+        ## ACT & ASSERT
+        $this->json('POST', '/transaction', [
+            'payer_id' => $payer->id,
+            'payee_id' => $payee->id,
+            'amount' => 100
+        ])->seeJson([
+            'message' => 'Transação não autorizada.'
+        ]);
+    }
+
+    /**
+     * testing correct transaction
+     *
+     * @return void
+     */
+    public function testShouldTransact()
+    {
+        ## ARRANGE
+        $payer = User::factory()->create([
+            'available_money' => 100
+        ]);
+
+        $payee = User::factory()->create();
+
+        $httpResponseMock = $this->createMock(HttpResponseEntityInterface::class);
+        $httpResponseMock->method('getStatusCode')->willReturn(Response::HTTP_OK);
+
+        $httpRequestMock = $this->createMock(HttpRequestServiceInterface::class);
+        $httpRequestMock->method('get')->willReturn($httpResponseMock);
+
+        $this->app->instance(HttpRequestServiceInterface::class, $httpRequestMock);
+
+        ## ACT & ASSERT
         $this->json('POST', '/transaction', [
             'payer_id' => $payer->id,
             'payee_id' => $payee->id,
